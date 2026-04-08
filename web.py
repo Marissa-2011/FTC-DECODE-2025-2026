@@ -240,7 +240,7 @@ def data_view():
                 team_stats[t]['count'] += 1
                 team_stats[t]['avg'] = round(team_stats[t]['total'] / team_stats[t]['count'], 1)
 
-    sorted_stats = dict(sorted(team_stats.items(), key=lambda x: x.get('avg', 0), reverse=True))
+    sorted_stats = dict(sorted(team_stats.items(), key=lambda x: x[1].get('avg', 0), reverse=True))
     return render_template_string(analysis_page, results=sorted_stats)
 
 
