@@ -13,9 +13,7 @@ Also if anyone wants to answer a qn or tell the group abt a change pls write it 
 '''
 
 '''ISSUES:
-- need to change so that we only submit information about our own robot
-- csv gets updated on devices - not a problem with accounts (different accounts on the same device
-  see the same data) but we need to find a way to update the file permanently)
+- csv gets updated on devices - should be fixed when we upload to the web
 - ideally we click on robots to see their information instead of or as well as the table (can't fit
   all the information on)
 - we need to sort out what happens if teams accidentally submit the wrong option - is there a way for the team to edit the info about themselves?
