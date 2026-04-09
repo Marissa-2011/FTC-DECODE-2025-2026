@@ -11,3 +11,12 @@ Also if anyone wants to answer a qn or tell the group abt a change pls write it 
   invitation to join first)
 - make edits
 '''
+
+'''ISSUES:
+- need to change so that we only submit information about our own robot
+- csv gets updated on devices - not a problem with accounts (different accounts on the same device
+  see the same data) but we need to find a way to update the file permanently)
+- no register button anymore
+- ideally we click on robots to see their information instead of or as well as the table (can't fit
+  all the information on)
+'''
