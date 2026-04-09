@@ -253,7 +253,7 @@ def data_view():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        u, p = request.form['username'], request.form['password']
+        u, p = request.form['username'].lower().strip(), request.form['password'].lower().strip()
         if os.path.exists(user_file):
             with open(user_file, 'r') as f:
                 for row in csv.reader(f):
