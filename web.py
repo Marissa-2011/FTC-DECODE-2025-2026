@@ -267,6 +267,7 @@ def login():
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
+  error = ' '
   if request.method == 'POST':
     u = request.form['username'].lower().strip()
     p = request.form['password'].lower().strip()
