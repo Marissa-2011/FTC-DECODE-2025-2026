@@ -259,8 +259,8 @@ def data_view():
             for row in reader:
                 t = row['team_num']
                 if t not in team_stats:
-                    p_info = pit_dict.get(t, {'drive_type': 'UNKNOWN', 'notes': 'N/A'})
-                    team_stats[t] = {'total': 0, 'count': 0, 'drive_type': p_info['drive_type'], 'notes': p_info['notes']}
+                    p_info = pit_dict.get(t, {'team_name':row['scout'], 'drive_type': 'UNKNOWN', 'notes': 'N/A'})
+                    team_stats[t] = {'team_name': p_info['team_name'], 'total': 0, 'count': 0, 'drive_type': p_info['drive_type'], 'notes': p_info['notes']}
                 team_stats[t]['total'] += int(row['points'])
                 team_stats[t]['count'] += 1
                 team_stats[t]['avg'] = round(team_stats[t]['total'] / team_stats[t]['count'], 1)
