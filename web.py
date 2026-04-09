@@ -223,8 +223,15 @@ def pit():
     if 'user' not in session or 'team_num' not in session: return redirect('/login')
     if request.method == 'POST':
         with open(pit_file, 'a', newline='') as f:
-            csv.writer(f).writerow(
-                [session['user'], session['team_num'], request.form['drive_type'], request.form['notes']])
+            csv.writer(f).writerow([
+                session['user'], session['team_num'],
+                request.form['drive_type'], 
+                request.form['turret'],
+                request.form['indexer'],
+                request.form['auto'],
+                request.form['teleop'],
+                request.form['notes']
+            ])
         return redirect('/data')
     return render_template_string(pit_form)
 
