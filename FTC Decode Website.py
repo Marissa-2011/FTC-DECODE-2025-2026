@@ -219,7 +219,7 @@ def data_view():
   # Process pit info first
   for t, info in pit_dict.items():
     if filter_team and t != filter_team: continue
-    team_stats[t] = {'total': 0, 'count': 0, 'avg': 0.0, 'drive': info['drive_type'], 'notes': info['notes']}
+    team_stats[t] = {'total': 0, 'count': 0, 'avg': 0.0, 'drive_type': info['drive_type'], 'notes': info['notes']}
 
   # Merge match info
   if os.path.exists(match_file):
@@ -229,7 +229,7 @@ def data_view():
         t = row['team_num']
         if filter_team and t != filter_team: continue
         if t not in team_stats:
-          team_stats[t] = {'total': 0, 'count': 0, 'avg': 0, 'drive': 'Unknown', 'notes': 'N/A'}
+          team_stats[t] = {'total': 0, 'count': 0, 'avg': 0, 'drive_type': 'Unknown', 'notes': 'N/A'}
         team_stats[t]['total'] += int(row['points'])
         team_stats[t]['count'] += 1
         team_stats[t]['avg'] = round(team_stats[t]['total'] / team_stats[t]['count'], 1)

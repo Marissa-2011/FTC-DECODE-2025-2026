@@ -71,7 +71,7 @@ base_style = '''
 nav_bar = '''
 <nav>
   <a href="/" style="font-size: 20px; color: white; margin-right: 40px;">SQUID // <span style="color:var(--accent)">NETWORK</span></a>
-  <a href="/">DASHBOARD</a> <a href="/pit">PIT SCOUT</a> <a href="/match">MATCH SCOUT</a> <a href="/data">ANALYSIS</a>
+  <a href="/">DASHBOARD</a> <a href="/pit">ABOUT MY ROBOT</a> <a href="/match">MY MATCHES</a> <a href="/data">ANALYSIS</a>
   <a style="margin-left: auto; color: #f87171;" href="/logout">LOGOUT</a>
 </nav>
 '''
@@ -89,8 +89,8 @@ home_page = base_style + nav_bar + '''
     <div class="card">
       <h3 style="margin-top:0">Quick Actions</h3>
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-        <a href="/pit"><button>PIT SCOUT</button></a>
-        <a href="/match"><button>MATCH SCOUT</button></a>
+        <a href="/pit"><button>ABOUT MY ROBOT</button></a>
+        <a href="/match"><button>MY MATCHES</button></a>
       </div>
     </div>
   </div>
@@ -104,7 +104,7 @@ home_page = base_style + nav_bar + '''
 pit_form = base_style + nav_bar + '''
 <div class="container" style="max-width: 600px;">
   <div class="card">
-    <h2>ABOUT MY ROBOT</h2>
+    <h2>ROBOT DATA</h2>
     <form method="POST">
       <label>TEAM NUMBER</label>
       <input type="text" inputmode="numeric" name="team_num" placeholder="####" required>
@@ -116,7 +116,7 @@ pit_form = base_style + nav_bar + '''
       </select>
       <label>SYSTEM NOTES</label>
       <textarea name="notes" placeholder="ROBOT CAPABILITIES..." rows="5"></textarea>
-      <button type="submit">SAVE PIT DATA</button>
+      <button type="submit">SAVE ROBOT DATA</button>
     </form>
   </div>
 </div>
