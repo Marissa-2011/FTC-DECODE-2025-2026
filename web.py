@@ -13,7 +13,7 @@ match_file = 'match_data.csv'
 for f_path, headers in [
     (user_file, ['username', 'password']),
     (pit_file, ['scout', 'team_num', 'drive_type', 'turret', 'indexer', 'auto', 'teleop', 'notes']),
-    (match_file, ['scout', 'team_num', 'match_num', 'points', 'parking', 'fouls', 'match_notes'])
+    (match_file, ['scout', 'team_num', 'match_num', 'points', 'parking', 'fouls', 'patterns', 'balls', 'match_notes'])
 ]:
     if not os.path.exists(f_path):
         with open(f_path, 'w', newline='') as f:
@@ -150,7 +150,7 @@ match_form = base_style + nav_bar + '''
     <form method="POST">
       <div style="display: flex; gap: 10px;">
         <div style="flex:1"><label>MATCH #</label><input type="number" name="match_num" required></div>
-        <div style="flex:1"><label>POINTS</label><input type="number" name="points" required></div>
+        <div style="flex:1"><label>ALLIANCE POINTS</label><input type="number" name="points" required></div>
       </div>
       <label>PARKING STATUS</label>
       <select name="parking">
@@ -158,16 +158,16 @@ match_form = base_style + nav_bar + '''
         <option value="Partially">PARTIALLY</option>
         <option value="No Parking">NO_PARKING</option>
       </select>
-      <label>FOULS INCURRED</label>
+      <label>MAXIMUM FOUL TYPE INCURRED</label>
       <select name="fouls">
         <option value="None">NONE</option>
         <option value="Minor">MINOR</option>
         <option value="Major">MAJOR</option>
       </select>
       <label>PATTERNS SCORED</label>
-      <input type='number' name='patterns' required>
-      <label>INDIVIDUAL ARTEFACTS SCORED (IF RECORDED, ELSE SKIP)</label>
       <input type='number' name='patterns'>
+      <label>INDIVIDUAL ARTEFACTS SCORED (IF RECORDED, ELSE SKIP)</label>
+      <input type='number' name='balls'>
       <label>MATCH OBSERVATIONS</label>
       <textarea name="match_notes" rows="3"></textarea>
       <button type="submit">SAVE MATCH DATA</button>
@@ -255,7 +255,8 @@ def match():
         with open(match_file, 'a', newline='') as f:
             csv.writer(f).writerow([
                 session['user'], session['team_num'], request.form['match_num'],
-                request.form['points'], request.form['parking'], request.form['fouls'], request.form['match_notes']
+                request.form['points'], request.form['parking'], request.form['fouls'], request.form['patterns'],
+                request.form['balls'], request.form['match_notes']
             ])
         return redirect('/data')
     return render_template_string(match_form)
