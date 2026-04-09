@@ -277,7 +277,7 @@ def register():
       with open(user_file, 'r') as f:
         reader = csv.reader(f)
         for row in reader:
-          if row and row[0] == u and row[1] == p:
+          if row and row[0].lower() == u.lower() and row[1] == p:
             user_exists = True
             break
 
