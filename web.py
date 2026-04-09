@@ -113,7 +113,29 @@ pit_form = base_style + nav_bar + '''
         <option value="Tank">TANK</option>
         <option value="Swerve">SWERVE</option>
       </select>
-      <label>SYSTEM NOTES</label>
+      <label>TURRET PRESENT?</label>
+      <select name="drive_type">
+        <option value="yes">YES</option>
+        <option value="no">NO</option>
+      </select>
+      <label>INDEXER PRESENT?</label>
+      <select name="drive_type">
+        <option value="yes">YES</option>
+        <option value="no">NO</option>
+      </select>
+      <label>AUTONOMOUS</label>
+      <select name="drive_type">
+        <option value="nothing">DOES NOTHING</option>
+        <option value="leaves">LEAVES AREA</option>
+        <option value="scores">SCORES</option>
+      </select>
+      <label>TELEOP</label>
+      <select name="drive_type">
+        <option value="nothing">NO SCORING</option>
+        <option value="scores">SCORES</option>
+        <option value="patterns">SCORES PATTERNS</option>
+      </select>
+      <label>OTHER NOTES</label>
       <textarea name="notes" placeholder="ROBOT CAPABILITIES..." rows="5"></textarea>
       <button type="submit">SAVE ROBOT DATA</button>
     </form>
