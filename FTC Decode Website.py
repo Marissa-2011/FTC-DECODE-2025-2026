@@ -246,7 +246,7 @@ def login():
           session['user'] = u
           return redirect('/')
     return "Invalid login"
-  return render_template_string(base_style + '<div class="container"><div class="card"><h2>Login</h2><form method="POST"><input name="username" placeholder="Username"><input type="password" name="password" placeholder="Password"><button>Login</button></form><a href="/register" style="font-size:13px; color:var(--text-muted);">Create Account</a></div></div>')
+  return render_template_string(base_style + '<div class="container"><div class="card"><h2>Login</h2><form method="POST"><input name="username" placeholder="Team Name"><input name="password" placeholder="Team Number"><button>Login</button></form><a href="/register" style="font-size:13px; color:var(--text-muted);">Create Account</a></div></div>')
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
