@@ -176,30 +176,61 @@ match_form = base_style + nav_bar + '''
 </div>
 '''
 
+# Look at the DRIVE <th> specifically - I fixed the url_for calls here
 analysis_page = base_style + nav_bar + '''
 <div class="container">
   <div class="card">
-    <h2>BATTLE_ANALYTICS</h2>
-
-    <form method="GET" action="/data" style="display: flex; gap: 10px; margin-bottom: 20px;">
-      <input type="text" name="search" placeholder="SEARCH TEAM # OR NAME..." style="margin-bottom:0; flex: 2;">
-      <select name="drive" style="margin-bottom:0; flex: 1;">
-        <option value="">ALL DRIVE BASES</option>
-        <option value="Mecanum">MECANUM</option>
-        <option value="Tank">TANK</option>
-        <option value="Swerve">SWERVE</option>
+    <h2 style="letter-spacing:2px;">ALLIANCE_DATABASE</h2>
+    <form method="GET" action="/data" style="display: grid; grid-template-columns: repeat(3, 1fr) auto; gap: 10px; margin-bottom: 30px;">
+      <input type="text" name="search" value="{{ filters.get('search', '') }}" placeholder="SEARCH NAME/NUM..." style="margin-bottom:0;">
+      <select name="drive">
+        <option value="">DRIVE: ALL</option>
+        {% for opt in ['Mecanum', 'Tank', 'Swerve'] %}
+        <option value="{{opt}}" {% if filters.get('drive') == opt %}selected{% endif %}>{{opt|upper}}</option>
+        {% endfor %}
       </select>
-      <button type="submit" style="width: auto; padding: 0 20px;">FILTER</button>
-      <a href="/data" style="text-decoration:none;"><button type="button" style="background:#334155; width: auto; padding: 0 20px;">RESET</button></a>
+      <select name="auto">
+        <option value="">AUTO: ALL</option>
+        {% for opt in ['scores', 'leaves', 'nothing'] %}
+        <option value="{{opt}}" {% if filters.get('auto') == opt %}selected{% endif %}>{{opt|upper}}</option>
+        {% endfor %}
+      </select>
+      <select name="turret">
+        <option value="">TURRET: ALL</option>
+        <option value="yes" {% if filters.get('turret') == 'yes' %}selected{% endif %}>HAS TURRET</option>
+        <option value="no" {% if filters.get('turret') == 'no' %}selected{% endif %}>NO TURRET</option>
+      </select>
+      <select name="indexer">
+        <option value="">INDEXER: ALL</option>
+        <option value="yes" {% if filters.get('indexer') == 'yes' %}selected{% endif %}>HAS INDEXER</option>
+        <option value="no" {% if filters.get('indexer') == 'no' %}selected{% endif %}>NO INDEXER</option>
+      </select>
+      <select name="tele">
+        <option value="">TELEOP: ALL</option>
+        <option value="patterns" {% if filters.get('tele') == 'patterns' %}selected{% endif %}>PATTERNS</option>
+        <option value="scores" {% if filters.get('tele') == 'scores' %}selected{% endif %}>SCORES</option>
+      </select>
+      <input type="hidden" name="sort" value="{{ filters.get('sort', 'score_desc') }}">
+      <button type="submit">APPLY FILTERS</button>
+      <a href="/data" style="grid-column: span 4; text-align:center; color:var(--text-muted); font-size:12px; text-decoration:none;">RESET ALL</a>
     </form>
 
     <table>
       <thead>
         <tr>
-          <th><a href="/data?sort=team" style="color:inherit; text-decoration:none;">TEAM ↕</a></th>
-          <th><a href="/data?sort=avg" style="color:inherit; text-decoration:none;">AVG_SCORE ↕</a></th>
-          <th><a href="/data?sort=runs" style="color:inherit; text-decoration:none;">RUNS ↕</a></th>
-          <th>BASE</th>
+          <th>TEAM 
+            <a href="{{ url_for('data_view', **dict(filters, sort='team_asc')) }}">▲</a> 
+            <a href="{{ url_for('data_view', **dict(filters, sort='team_desc')) }}">▼</a>
+          </th>
+          <th>AVG SCORE 
+            <a href="{{ url_for('data_view', **dict(filters, sort='score_asc')) }}">▲</a> 
+            <a href="{{ url_for('data_view', **dict(filters, sort='score_desc')) }}">▼</a>
+          </th>
+          <th>RUNS</th>
+          <th>DRIVE 
+            <a href="{{ url_for('data_view', **dict(filters, sort='drive_asc')) }}">▲</a> 
+            <a href="{{ url_for('data_view', **dict(filters, sort='drive_desc')) }}">▼</a>
+          </th>
           <th>INTEL</th>
         </tr>
       </thead>
@@ -207,10 +238,7 @@ analysis_page = base_style + nav_bar + '''
         {% for team, stats in results.items() %}
         <tr>
           <td><span class="rank-badge">{{ stats.team_name }}: {{team}}</span></td>
-          <td>
-            {{ stats.avg }}
-            <div class="progress-bg"><div class="progress-fill" style="width: {{ stats.avg if stats.avg < 100 else 100 }}%"></div></div>
-          </td>
+          <td style="color:var(--accent); font-weight:bold;">{{ stats.avg }}</td>
           <td>{{ stats.count }}</td>
           <td><code>{{ stats.drive_type }}</code></td>
           <td style="font-size: 11px; color: var(--text-muted);">{{ stats.notes }}</td>
@@ -222,14 +250,12 @@ analysis_page = base_style + nav_bar + '''
 </div>
 '''
 
-
 # --- LOGIC ---
 
 def get_pit_info():
     info = {}
     if os.path.exists(pit_file):
         with open(pit_file, 'r') as f:
-            # strip() helps ignore accidental spaces in your manual header update
             reader = csv.DictReader(f)
             reader.fieldnames = [name.strip() for name in reader.fieldnames]
             for row in reader:
@@ -238,6 +264,10 @@ def get_pit_info():
                     info[t] = {
                         'team_name': row.get('scout', 'UNKNOWN'),
                         'drive_type': row.get('drive_type', 'UNKNOWN'),
+                        'turret': row.get('turret', ''),
+                        'indexer': row.get('indexer', ''),
+                        'auto': row.get('auto', ''),
+                        'teleop': row.get('teleop', ''),
                         'notes': row.get('notes', 'N/A')
                     }
     return info
@@ -288,50 +318,61 @@ def data_view():
     pit_dict = get_pit_info()
     team_stats = {}
 
-    # 1. Get filter/sort settings from the URL
-    sort_by = request.args.get('sort', 'avg')  # Default sort by average
-    filter_drive = request.args.get('drive', '')
-    search_query = request.args.get('search', '').upper()
+    # --- 1. GET ALL URL PARAMETERS ---
+    sort_by = request.args.get('sort', 'score_desc')  # Default: Best score first
+    f_search = request.args.get('search', '').upper()
+    f_drive = request.args.get('drive', '')
+    f_turret = request.args.get('turret', '')
+    f_indexer = request.args.get('indexer', '')
+    f_auto = request.args.get('auto', '')
+    f_tele = request.args.get('tele', '')
 
-    # 2. Process Match Data
+    # --- 2. FILTER & PROCESS DATA ---
     if os.path.exists(match_file):
         with open(match_file, 'r') as file:
             reader = csv.DictReader(file)
             for row in reader:
                 t = row['team_num']
+                # Get pit info or empty defaults
+                p = pit_dict.get(t, {'team_name': row['scout'], 'drive_type': 'N/A',
+                                     'turret': '', 'indexer': '', 'auto': '', 'teleop': '', 'notes': 'N/A'})
 
-                # Apply Search Filter (Team Number or Name)
-                if search_query and (search_query not in t and search_query not in row['scout'].upper()):
-                    continue
+                # Apply All 6 Filters
+                if f_search and (f_search not in t and f_search not in p['team_name'].upper()): continue
+                if f_drive and p['drive_type'] != f_drive: continue
+                if f_turret and p.get('turret') != f_turret: continue
+                if f_indexer and p.get('indexer') != f_indexer: continue
+                if f_auto and p.get('auto') != f_auto: continue
+                if f_tele and p.get('teleop') != f_tele: continue
 
                 if t not in team_stats:
-                    p_info = pit_dict.get(t, {'team_name': row['scout'], 'drive_type': 'UNKNOWN', 'notes': 'N/A'})
-
-                    # Apply Drive Base Filter
-                    if filter_drive and p_info['drive_type'] != filter_drive:
-                        continue
-
                     team_stats[t] = {
-                        'team_name': p_info['team_name'],
-                        'total': 0, 'count': 0, 'avg': 0.0,
-                        'drive_type': p_info['drive_type'],
-                        'notes': p_info['notes']
+                        'team_name': p['team_name'], 'total': 0, 'count': 0, 'avg': 0.0,
+                        'drive_type': p['drive_type'], 'notes': p['notes']
                     }
 
                 team_stats[t]['total'] += int(row['points'])
                 team_stats[t]['count'] += 1
                 team_stats[t]['avg'] = round(team_stats[t]['total'] / team_stats[t]['count'], 1)
 
-    # 3. Handle Sorting
-    if sort_by == 'team':
-        sorted_stats = dict(sorted(team_stats.items(), key=lambda x: x[0]))
-    elif sort_by == 'runs':
-        sorted_stats = dict(sorted(team_stats.items(), key=lambda x: x[1]['count'], reverse=True))
-    else:  # Default: 'avg'
-        sorted_stats = dict(sorted(team_stats.items(), key=lambda x: x[1]['avg'], reverse=True))
+    # --- 3. APPLY 6 SORTS ---
+    # Convert to list for easier sorting
+    stats_list = [(tid, data) for tid, data in team_stats.items()]
 
-    return render_template_string(analysis_page, results=sorted_stats, current_sort=sort_by)
+    if sort_by == 'team_asc':
+        stats_list.sort(key=lambda x: int(x[0]))
+    elif sort_by == 'team_desc':
+        stats_list.sort(key=lambda x: int(x[0]), reverse=True)
+    elif sort_by == 'score_asc':
+        stats_list.sort(key=lambda x: x[1]['avg'])
+    elif sort_by == 'score_desc':
+        stats_list.sort(key=lambda x: x[1]['avg'], reverse=True)
+    elif sort_by == 'drive_asc':
+        stats_list.sort(key=lambda x: x[1]['drive_type'])
+    elif sort_by == 'drive_desc':
+        stats_list.sort(key=lambda x: x[1]['drive_type'], reverse=True)
 
+    return render_template_string(analysis_page, results=dict(stats_list), filters=request.args)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
