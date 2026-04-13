@@ -238,7 +238,12 @@ analysis_page = base_style + nav_bar + '''
         {% for team, stats in results.items() %}
         <tr>
           <td><span class="rank-badge">{{ stats.team_name }}: {{team}}</span></td>
-          <td style="color:var(--accent); font-weight:bold;">{{ stats.avg }}</td>
+          <td style="min-width: 120px;">
+            <span style="color:var(--accent); font-weight:bold;">{{ stats.avg }}</span>
+            <div class="progress-bg">
+                <div class="progress-fill" style="width: {{ stats.avg if stats.avg < 100 else 100 }}%"></div>
+            </div>
+          </td>
           <td>{{ stats.count }}</td>
           <td><code>{{ stats.drive_type }}</code></td>
           <td style="font-size: 11px; color: var(--text-muted);">{{ stats.notes }}</td>
