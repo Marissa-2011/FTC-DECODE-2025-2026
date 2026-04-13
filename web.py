@@ -241,7 +241,7 @@ analysis_page = base_style + nav_bar + '''
     <table>
       <thead>
         <tr>
-          <th>TEAM 
+          <th>TEAM (CLICK FOR FULL TEAM PROFILE)
             <a href="{{ url_for('data_view', **dict(filters, sort='team_asc')) }}">▲</a> 
             <a href="{{ url_for('data_view', **dict(filters, sort='team_desc')) }}">▼</a>
           </th>
@@ -260,7 +260,11 @@ analysis_page = base_style + nav_bar + '''
       <tbody>
         {% for team, stats in results.items() %}
         <tr>
-          <td><span class="rank-badge">{{ stats.team_name }}: {{team}}</span></td>
+          <td>
+            <a href="/robot/{{team}}" style="text-decoration:none;">
+                <span class="rank-badge">{{ stats.team_name }}: {{team}}</span>
+            </a>
+          </td>
           <td style="min-width: 140px;">
             <div style="display: flex; align-items: center;">
                 <span style="color:var(--accent); font-weight:bold; min-width: 35px;">{{ stats.avg }}</span>
@@ -276,6 +280,54 @@ analysis_page = base_style + nav_bar + '''
         {% endfor %}
       </tbody>
     </table>
+  </div>
+</div>
+'''
+
+profile_page = base_style + nav_bar + '''
+<div class="container">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+    <h1 style="margin:0;">TEAM {{team_num}} // <span style="color:var(--accent)">{{pit.team_name}}</span></h1>
+    <a href="/data" style="text-decoration:none;"><button style="width:auto; padding: 10px 20px; background:#334155;">BACK TO DATABASE</button></a>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px;">
+    <div class="card">
+      <h3 style="margin-top:0; border-bottom: 1px solid var(--border); padding-bottom: 10px; font-size: 12px; letter-spacing: 2px;">ROBOT_SPECS</h3>
+      <div style="margin-bottom: 15px;"><label>DRIVE BASE</label> {{pit.drive_type|upper}}</div>
+      <div style="margin-bottom: 15px;"><label>TURRET</label> {{pit.turret|upper}}</div>
+      <div style="margin-bottom: 15px;"><label>INDEXER</label> {{pit.indexer|upper}}</div>
+      <div style="margin-bottom: 15px;"><label>AUTO</label> {{pit.auto|upper}}</div>
+      <div style="margin-bottom: 15px;"><label>TELEOP</label> {{pit.teleop|upper}}</div>
+      <label>MASTER NOTES</label>
+      <p style="font-size: 14px; color: var(--text-muted); line-height: 1.6;">{{pit.notes}}</p>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top:0; border-bottom: 1px solid var(--border); padding-bottom: 10px; font-size: 12px; letter-spacing: 2px;">MATCH_HISTORY</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>MATCH</th>
+            <th>SCORE</th>
+            <th>PARKING</th>
+            <th>FOULS</th>
+            <th>OBSERVATIONS</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for m in matches %}
+          <tr>
+            <td>#{{ m.match_num }}</td>
+            <td style="color:var(--accent); font-weight:bold;">{{ m.points }}</td>
+            <td>{{ m.parking }}</td>
+            <td>{{ m.fouls }}</td>
+            <td style="font-size: 12px; color: var(--text-muted);">{{ m.match_notes }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 '''
@@ -419,6 +471,47 @@ def data_view():
         stats_list.sort(key=lambda x: x[1]['drive_type'], reverse=True)
 
     return render_template_string(analysis_page, results=dict(stats_list), filters=request.args)
+
+
+@app.route('/robot/<team_num>')
+def robot_profile(team_num):
+    if 'user' not in session: return redirect('/login')
+
+    # 1. Get Pit Info
+    pit_dict = get_pit_info()
+    # Fallback if no pit data exists yet
+    # Try to get the name from Pit Data first
+    robot_pit = pit_dict.get(team_num)
+
+    # If not in Pit Data, try to find the name in Match Data
+    if not robot_pit:
+        found_name = "UNKNOWN"
+        if os.path.exists(match_file):
+            with open(match_file, 'r') as f:
+                for row in csv.DictReader(f):
+                    if row['team_num'] == team_num:
+                        found_name = row['scout']  # Use the name from the match report
+                        break
+
+        robot_pit = {
+            'team_name': found_name,
+            'drive_type': 'NOT RECORDED',
+            'turret': '?', 'indexer': '?', 'auto': '?', 'teleop': '?',
+            'notes': 'No pit notes recorded yet.'
+        }
+
+    # 2. Get Match History
+    robot_matches = []
+    if os.path.exists(match_file):
+        with open(match_file, 'r') as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                if row['team_num'] == team_num:
+                    robot_matches.append(row)
+
+    robot_matches.reverse()  # Show newest matches first
+
+    return render_template_string(profile_page, team_num=team_num, pit=robot_pit, matches=robot_matches)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
